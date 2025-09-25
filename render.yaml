@@ -59,6 +59,9 @@ services:
   - type: redis
     name: docx2pdf-redis
     plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all
 
 databases:
   - name: docx2pdf-db
