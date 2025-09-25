@@ -56,10 +56,10 @@ services:
       mountPath: /data
       sizeGB: 10
 
-databases:
-  - name: docx2pdf-db
+  - type: redis
+    name: docx2pdf-redis
     plan: starter
 
-redis:
-  - name: docx2pdf-redis
+databases:
+  - name: docx2pdf-db
     plan: starter
