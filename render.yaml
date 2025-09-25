@@ -9,34 +9,18 @@ services:
         value: production
       - key: STORAGE_ROOT
         value: /data
-      - key: POSTGRES_HOST
-        fromDatabase: true
-        name: docx2pdf-db
-        property: host
-      - key: POSTGRES_PORT
-        fromDatabase: true
-        name: docx2pdf-db
-        property: port
-      - key: POSTGRES_DB
-        fromDatabase: true
-        name: docx2pdf-db
-        property: database
-      - key: POSTGRES_USER
-        fromDatabase: true
-        name: docx2pdf-db
-        property: user
-      - key: POSTGRES_PASSWORD
-        fromDatabase: true
-        name: docx2pdf-db
-        property: password
+      - key: DATABASE_URL
+        fromDatabase:
+          name: docx2pdf-db
+          property: connectionString
       - key: REDIS_URL
-        fromService: true
-        name: docx2pdf-redis
-        type: redis
-        property: connectionString
+        fromService:
+          name: docx2pdf-redis
+          type: redis
+          property: connectionString
       - key: SOFFICE_BIN
         value: soffice
-    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     env: docker
     disk:
       name: shared-data
@@ -54,31 +38,15 @@ services:
         value: production
       - key: STORAGE_ROOT
         value: /data
-      - key: POSTGRES_HOST
-        fromDatabase: true
-        name: docx2pdf-db
-        property: host
-      - key: POSTGRES_PORT
-        fromDatabase: true
-        name: docx2pdf-db
-        property: port
-      - key: POSTGRES_DB
-        fromDatabase: true
-        name: docx2pdf-db
-        property: database
-      - key: POSTGRES_USER
-        fromDatabase: true
-        name: docx2pdf-db
-        property: user
-      - key: POSTGRES_PASSWORD
-        fromDatabase: true
-        name: docx2pdf-db
-        property: password
+      - key: DATABASE_URL
+        fromDatabase:
+          name: docx2pdf-db
+          property: connectionString
       - key: REDIS_URL
-        fromService: true
-        name: docx2pdf-redis
-        type: redis
-        property: connectionString
+        fromService:
+          name: docx2pdf-redis
+          type: redis
+          property: connectionString
       - key: SOFFICE_BIN
         value: soffice
     dockerCommand: celery -A app.worker.celery_app worker --loglevel=INFO --concurrency=1
