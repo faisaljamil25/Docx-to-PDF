@@ -1,0 +1,97 @@
+services:
+  - type: web
+    name: docx2pdf-api
+    runtime: docker
+    repo: https://github.com/faisaljamil25/Docx-to-PDF
+    plan: starter
+    envVars:
+      - key: ENV
+        value: production
+      - key: STORAGE_ROOT
+        value: /data
+      - key: POSTGRES_HOST
+        fromDatabase: true
+        name: docx2pdf-db
+        property: host
+      - key: POSTGRES_PORT
+        fromDatabase: true
+        name: docx2pdf-db
+        property: port
+      - key: POSTGRES_DB
+        fromDatabase: true
+        name: docx2pdf-db
+        property: database
+      - key: POSTGRES_USER
+        fromDatabase: true
+        name: docx2pdf-db
+        property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase: true
+        name: docx2pdf-db
+        property: password
+      - key: REDIS_URL
+        fromService: true
+        name: docx2pdf-redis
+        type: redis
+        property: connectionString
+      - key: SOFFICE_BIN
+        value: soffice
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    env: docker
+    disk:
+      name: shared-data
+      mountPath: /data
+      sizeGB: 10
+    healthCheckPath: /health
+
+  - type: worker
+    name: docx2pdf-worker
+    runtime: docker
+    repo: https://github.com/faisaljamil25/Docx-to-PDF
+    plan: starter
+    envVars:
+      - key: ENV
+        value: production
+      - key: STORAGE_ROOT
+        value: /data
+      - key: POSTGRES_HOST
+        fromDatabase: true
+        name: docx2pdf-db
+        property: host
+      - key: POSTGRES_PORT
+        fromDatabase: true
+        name: docx2pdf-db
+        property: port
+      - key: POSTGRES_DB
+        fromDatabase: true
+        name: docx2pdf-db
+        property: database
+      - key: POSTGRES_USER
+        fromDatabase: true
+        name: docx2pdf-db
+        property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase: true
+        name: docx2pdf-db
+        property: password
+      - key: REDIS_URL
+        fromService: true
+        name: docx2pdf-redis
+        type: redis
+        property: connectionString
+      - key: SOFFICE_BIN
+        value: soffice
+    dockerCommand: celery -A app.worker.celery_app worker --loglevel=INFO --concurrency=1
+    env: docker
+    disk:
+      name: shared-data
+      mountPath: /data
+      sizeGB: 10
+
+databases:
+  - name: docx2pdf-db
+    plan: starter
+
+redis:
+  - name: docx2pdf-redis
+    plan: starter

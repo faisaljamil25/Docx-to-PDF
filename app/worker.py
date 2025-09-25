@@ -4,7 +4,7 @@ from sqlalchemy import and_
 from app.core.config import get_settings
 from app.db.session import SessionLocal
 from app.db.models import Job, JobFile, JobStatus, FileStatus
-from app.services.conversion import convert_docx_to_pdf
+from app.services import conversion
 from app.utils.zip_utils import zip_directory
 from pathlib import Path
 
@@ -34,7 +34,7 @@ def process_job(job_id: str):
         for f in files:
             f.status = FileStatus.IN_PROGRESS
             db.commit()
-            pdf_path = convert_docx_to_pdf(f.input_path, str(output_dir))
+            pdf_path = conversion.convert_docx_to_pdf(f.input_path, str(output_dir))
             if pdf_path:
                 f.status = FileStatus.COMPLETED
                 f.output_path = pdf_path
@@ -53,18 +53,24 @@ def process_job(job_id: str):
             )
             .all()
         )
+        failed_count = (
+            db.query(JobFile)
+            .filter(and_(JobFile.job_id == job.id, JobFile.status == FileStatus.FAILED))
+            .count()
+        )
+        completed_count = len(completed)
+        job.completed_files = completed_count
+        job.failed_files = failed_count
         pdfs = [f.output_path for f in completed if f.output_path]
         archive_path = Path(settings.STORAGE_ARCHIVES) / f"{job.id}.zip"
         zip_directory(pdfs, str(archive_path))
         job.archive_path = str(archive_path)
 
         # Set final status
-        if job.total_files > 0 and (
-            job.completed_files + job.failed_files == job.total_files
-        ):
+        if job.total_files > 0 and (completed_count + failed_count == job.total_files):
             # If at least one succeeded, mark COMPLETED; else FAILED
             job.status = (
-                JobStatus.COMPLETED if job.completed_files > 0 else JobStatus.FAILED
+                JobStatus.COMPLETED if completed_count > 0 else JobStatus.FAILED
             )
         elif job.total_files == 0:
             # Shouldn't usually happen (API prevents), but keep safe default

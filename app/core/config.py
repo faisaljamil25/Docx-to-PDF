@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = Field("redis", validation_alias="REDIS_HOST")
     REDIS_PORT: int = Field(6379, validation_alias="REDIS_PORT")
     REDIS_DB: int = Field(0, validation_alias="REDIS_DB")
+    REDIS_URL_RAW: Optional[str] = Field(default=None, validation_alias="REDIS_URL")
 
     # Conversion
     SOFFICE_BIN: str = Field("soffice", validation_alias="SOFFICE_BIN")
@@ -49,6 +50,8 @@ class Settings(BaseSettings):
 
     @property
     def REDIS_URL(self) -> str:
+        if self.REDIS_URL_RAW:
+            return self.REDIS_URL_RAW
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
     @property
